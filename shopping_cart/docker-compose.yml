@@ -1,0 +1,41 @@
+version: "3.5"
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: mysql_do
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_DATABASE: 'laravel'
+      MYSQL_ROOT_PASSWORD: ''
+    volumes:
+      - dir-site:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8099:80
+    environment:
+      - PMA_ARBITRARY=1
+
+  php:
+    image: do_dock
+    build :
+      dockerfile: Dockerfile
+    container_name: laravel_do
+    ports:
+      - "8000:8000"
+    hostname: laravel_do
+    working_dir: /project
+    volumes:
+      - ./:/project  
+    depends_on:
+      - db
+    entrypoint: ./wait-for-it.sh db:3306 -- bash ./docker/laravel.sh  
+    links:
+      - db
+
+volumes:
+  dir-site:
